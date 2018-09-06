@@ -102,6 +102,27 @@ open class CloudCore {
 			
 		queue.addOperation(updateFromCloudOperation)
 	}
+    
+    /// Enable CloudKit and Core Data Just upload synchronization.
+    /// This function is only designed to synchronize the local data.This is necessary for login processes.
+    ///
+    /// - Parameters:
+    ///   - container: `NSPersistentContainer` that will be used to save data
+    // TODO: Edit this function
+    public static func enableJustUpload(persistentContainer container: NSPersistentContainer) {
+        // Listen for local changes
+        let listener = CoreDataListener(container: container)
+        listener.delegate = self.delegate
+        listener.observe()
+        self.coreDataListener = listener
+        
+        // Subscribe (subscription may be outdated/removed)
+        #if !os(watchOS)
+        let subscribeOperation = SubscribeOperation()
+        subscribeOperation.errorBlock = { handle(subscriptionError: $0, container: container) }
+        queue.addOperation(subscribeOperation)
+        #endif
+    }
 	
 	/// Disables synchronization (push notifications won't be sent also)
 	public static func disable() {
